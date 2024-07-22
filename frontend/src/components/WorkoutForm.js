@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
+import { useWorkoutContext } from '../hooks/useWorkoutContext'
+import useAuthContext from '../hooks/useAuthContext'
 const WorkoutForm = ()=>{
-  
+    const { user } = useAuthContext()
+    const { dispatch } = useWorkoutContext()
+
     const [title, setTitle] = useState('')
     const [load, setLoad] = useState('')
     const [reps, setReps] = useState('')
@@ -9,13 +13,20 @@ const WorkoutForm = ()=>{
 
     const handleSubmit= async(e)=> {
         e.preventDefault()
+
+        if(!user){
+            setError('You must be logged in')
+            return
+        }
+
         const workout = {title, load, reps}
 
         const response = await fetch('api/workouts', {
             method: 'POST',
             body: JSON.stringify(workout),
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user.token}`
             }
         }
         )
@@ -23,6 +34,7 @@ const WorkoutForm = ()=>{
 
         if(!response.ok){
             setError(json.error)
+            setEmptyFields(json.emptyFields)
         }
 
         if(response.ok){
@@ -31,6 +43,7 @@ const WorkoutForm = ()=>{
             setReps('')
             setError(null)
             setEmptyFields([])
+            dispatch({type: 'CREATE_WORKOUT', payload: json})
         }
         
     }
@@ -62,7 +75,9 @@ const WorkoutForm = ()=>{
             className={emptyFields.includes('reps')? 'error' : ''} />
 
             
-            <button >Add Workout</button>
+                 <button  >Add Workout</button>
+
+            
             {error && <div className="error">{error}</div>}
 
         </form>

@@ -1,26 +1,29 @@
 require("dotenv").config()
+const { format } = require("date-fns")
 
 const express = require("express")
 
 const app = express()
 const mongoose = require("mongoose")
 const workoutsRoutes = require('./routes/workouts')
+const userRoutes = require('./routes/user')
 
 
 app.use(express.json())
 
 app.use((req, res, next) => {
-
     console.log(req.path, req.method)
     next()
 })
 
+app.use('/api/user', userRoutes)
 app.use('/api/workouts', workoutsRoutes)
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(()=> {
         app.listen(process.env.PORT, () => {
-            console.log("Server is running on port" ,process.env.PORT);
+            console.log("Server is running on port" ,process.env.PORT, 'at', format(new Date(), 'yyyy-MM-dd hh:mm:ss'));
         });
     })
     .catch(error=> {
