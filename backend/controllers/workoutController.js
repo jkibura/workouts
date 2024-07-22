@@ -3,8 +3,9 @@ const Workout = require('../models/workoutModel')
 
 
 const getWorkouts = async (req, res) => {
+    const user_id = req.user._id
 
-    const workouts = await Workout.find()
+    const workouts = await Workout.find({ user_id }).sort({createdAt: -1})
     if(!workouts){
         return res.status(404).json({error: 'No workouts availabe'})
     }
@@ -27,13 +28,26 @@ const getWorkout = async (req, res) => {
 
 const createWorkout = async (req, res) => {
     const {title, load, reps} = req.body
+    const user_id = req.user._id
+
+let emptyFields = []
+
+if(!title){
+    emptyFields.push('title')
+}
+if(!load){
+    emptyFields.push('load')
+}
+if(!reps){
+    emptyFields.push('reps')
+}
 
     try {
-        const workout = await Workout.create({title, load, reps})
+        const workout = await Workout.create({title, load, reps, user_id})
         res.status(200).json(workout)
     }
     catch(error) {
-        res.status(400).json({error: error.message})
+        res.status(400).json({error: 'Please fill in all the fields', emptyFields})
     }
 }
 
